@@ -1,0 +1,183 @@
+{{-- ================================================
+     FILE: resources/views/layouts/app.blade.php
+     FUNGSI: Master layout untuk halaman customer/publik
+     ================================================ --}}
+
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    {{-- CSRF Token --}}
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+
+    {{-- SEO --}}
+    <title>@yield('title', 'Toko Online') - {{ config('app.name') }}</title>
+    <meta name="description" content="@yield('meta_description', 'Toko online terpercaya dengan produk berkualitas')">
+
+    {{-- Favicon --}}
+    <link rel="icon" href="{{ asset('favicon.ico') }}">
+
+    {{-- Google Fonts --}}
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
+    {{-- Vite --}}
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
+
+    {{-- CSS tambahan --}}
+    @stack('styles')
+</head>
+
+<body>
+    {{-- NAVBAR --}}
+    @include('partials.navbar')
+
+    {{-- FLASH --}}
+    <div class="container mt-3">
+        @include('partials.flash-messages')
+    </div>
+
+    {{-- CONTENT --}}
+    <main class="min-vh-100">
+        @yield('content')
+    </main>
+
+    {{-- FOOTER --}}
+    @include('partials.footer')
+
+    {{-- TEMPAT SCRIPT (Semua @push('scripts') dari halaman lain akan muncul di sini) --}}
+    @stack('scripts')
+
+    {{-- ============================================
+         SCRIPT WISHLIST (Pindahkan ke dalam body)
+         ============================================ --}}
+    @push('scripts')
+    <script>
+      async function toggleWishlist(productId) {
+        try {
+          const token = document.querySelector('meta[name="csrf-token"]').content;
+
+          const response = await fetch(`/wishlist/toggle/${productId}`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "X-CSRF-TOKEN": token,
+            },
+          });
+
+          if (response.status === 401) {
+            window.location.href = "/login";
+            return;
+          }
+
+          const data = await response.json();
+
+          if (data.status === "success") {
+            updateWishlistUI(productId, data.added);
+            updateWishlistCounter(data.count);
+            showToast(data.message);
+          }
+        } catch (error) {
+          console.error(error);
+          if (typeof showToast === "function") {
+            showToast("Terjadi kesalahan sistem.", "error");
+          }
+        }
+      }
+
+      function updateWishlistUI(productId, isAdded) {
+        document.querySelectorAll(`.wishlist-btn-${productId}`).forEach(btn => {
+          const icon = btn.querySelector("i");
+          if (!icon) return;
+
+          icon.classList.toggle("bi-heart-fill", isAdded);
+          icon.classList.toggle("text-danger", isAdded);
+          icon.classList.toggle("bi-heart", !isAdded);
+          icon.classList.toggle("text-secondary", !isAdded);
+        });
+      }
+
+      function updateWishlistCounter(count) {
+        const badge = document.getElementById("wishlist-count");
+        if (!badge) return;
+
+        badge.innerText = count;
+        badge.style.display = count > 0 ? "inline-block" : "none";
+      }
+    </script>
+    @endpush
+    <script>
+  /**
+   * Fungsi AJAX untuk Toggle Wishlist
+   * Menggunakan Fetch API (Modern JS) daripada jQuery.
+   */
+  async function toggleWishlist(productId) {
+    try {
+      // 1. Ambil CSRF token dari meta tag HTML
+      // Laravale mewajibkan token ini untuk setiap request POST demi keamanan.
+      const token = document.querySelector('meta[name="csrf-token"]').content;
+
+      // 2. Kirim Request ke Server
+      const response = await fetch(`/wishlist/toggle/${productId}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRF-TOKEN": token, // Tempel token di header
+        },
+      });
+
+      // 3. Handle jika user belum login (Error 401 Unauthorized)
+      if (response.status === 401) {
+        window.location.href = "/login"; // Lempar ke halaman login
+        return;
+      }
+
+      // 4. Baca respon JSON dari server
+      const data = await response.json();
+
+      if (data.status === "success") {
+        // 5. Update UI tanpa reload halaman
+        updateWishlistUI(productId, data.added); // Ganti warna ikon
+        updateWishlistCounter(data.count); // Update angka di header
+        showToast(data.message); // Tampilkan notifikasi
+      }
+    } catch (error) {
+      console.error("Error:", error);
+      showToast("Terjadi kesalahan sistem.", "error");
+    }
+  }
+
+  function updateWishlistUI(productId, isAdded) {
+    // Cari semua tombol wishlist untuk produk ini (bisa ada di card & detail page)
+    const buttons = document.querySelectorAll(`.wishlist-btn-${productId}`);
+
+    buttons.forEach((btn) => {
+      const icon = btn.querySelector("i"); // Menggunakan tag <i> untuk Bootstrap Icons
+      if (isAdded) {
+        // Ubah jadi merah solid (Love penuh)
+        icon.classList.remove("bi-heart", "text-secondary");
+        icon.classList.add("bi-heart-fill", "text-danger");
+      } else {
+        // Ubah jadi abu-abu outline (Love kosong)
+        icon.classList.remove("bi-heart-fill", "text-danger");
+        icon.classList.add("bi-heart", "text-secondary");
+      }
+    });
+  }
+
+  function updateWishlistCounter(count) {
+    const badge = document.getElementById("wishlist-count");
+    if (badge) {
+      badge.innerText = count;
+      // Bootstrap badge display toggle logic
+      badge.style.display = count > 0 ? "inline-block" : "none";
+    }
+  }
+</script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous">
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
