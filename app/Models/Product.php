@@ -23,6 +23,7 @@ class Product extends Model
         'discount_price',
         'stock',
         'weight',
+        'image',
         'is_active',
         'is_featured',
     ];
@@ -104,7 +105,12 @@ class Product extends Model
         if ($this->discount_price !== null && $this->discount_price < $this->price) {
             return (float) $this->discount_price;
         }
-        return (float) $this->price;
+        return ($this->discount_price > 0 && $this->discount_price < $this->price) 
+           ? (float) $this->discount_price 
+           : (float) $this->price;
+
+        // Jika ada harga diskon pakai diskon, jika tidak pakai harga normal
+        return $this->discount_price > 0 ? $this->discount_price : $this->price;
     }
 
     /**
