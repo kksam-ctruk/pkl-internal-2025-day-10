@@ -10,13 +10,18 @@ class CheckoutController extends Controller
 {
     public function index()
     {
-        // Pastikan keranjang tidak kosong
         $cart = auth()->user()->cart;
-        if (! $cart || $cart->items->isEmpty()) {
-            return redirect()->route('cart.index')->with('error', 'Keranjang kosong.');
-        }
 
-        return view('checkout.index', compact('cart'));
+    // Tambahkan baris ini untuk memuat data produk ke dalam item keranjang
+    if ($cart) {
+        $cart->load('items.product'); 
+    }
+
+    if (! $cart || $cart->items->isEmpty()) {
+        return redirect()->route('cart.index')->with('error', 'Keranjang kosong.');
+    }
+
+    return view('checkout.index', compact('cart'));
     }
 
     public function store(Request $request, OrderService $orderService)

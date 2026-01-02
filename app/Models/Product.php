@@ -102,15 +102,13 @@ class Product extends Model
      */
     public function getDisplayPriceAttribute(): float
     {
-        if ($this->discount_price !== null && $this->discount_price < $this->price) {
+        // 1. Cek apakah ada diskon, diskon tidak nol, dan diskon lebih murah dari harga asli
+        if ($this->discount_price > 0 && $this->discount_price < $this->price) {
             return (float) $this->discount_price;
         }
-        return ($this->discount_price > 0 && $this->discount_price < $this->price) 
-           ? (float) $this->discount_price 
-           : (float) $this->price;
-
-        // Jika ada harga diskon pakai diskon, jika tidak pakai harga normal
-        return $this->discount_price > 0 ? $this->discount_price : $this->price;
+    
+        // 2. Jika tidak memenuhi syarat di atas, gunakan harga normal
+        return (float) $this->price;
     }
 
     /**

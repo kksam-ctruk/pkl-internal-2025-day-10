@@ -23,8 +23,19 @@ use App\Http\Controllers\Admin\CategoryController as AdminCategoryController;
 use App\Http\Controllers\Admin\OrderController as AdminOrderController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Middleware\AdminMiddleware;
-
+use App\Http\Controllers\MidtransNotificationController;
 use App\Services\MidtransService;
+
+/*
+|--------------------------------------------------------------------------
+| WEBHOOK MIDTRANS (PUBLIC ROUTE)
+| PENTING: Harus di luar middleware 'auth' agar 200 OK
+|--------------------------------------------------------------------------
+*/
+// Menangani notifikasi otomatis dari Midtrans ke database kita
+Route::post('midtrans/notification', [MidtransNotificationController::class, 'handle'])
+    ->name('midtrans.notification');
+
 /*
 |--------------------------------------------------------------------------
 | AUTH ROUTES
@@ -105,6 +116,14 @@ Route::middleware('auth')->group(function () {
     // Orders
     Route::get('/orders', [OrderController::class, 'index'])->name('orders.index');
     Route::get('/orders/{order}', [OrderController::class, 'show'])->name('orders.show');
+
+    // Payment Pages
+    Route::get('/orders/{order}/pay', [PaymentController::class, 'show'])
+        ->name('orders.pay');
+    Route::get('/orders/{order}/success', [PaymentController::class, 'success'])
+        ->name('orders.success');
+    Route::get('/orders/{order}/pending', [PaymentController::class, 'pending'])
+        ->name('orders.pending');
 });
 
 /*
@@ -142,33 +161,18 @@ Route::middleware(['auth', AdminMiddleware::class])
         Route::get('/users', [UserController::class, 'index'])
             ->name('users.index');
 
-        Route::middleware('auth')->group(function() {
-        Route::get('/wishlist', [WishlistController::class, 'index'])->name('wishlist.index');
-        Route::post('/wishlist/toggle/{product}', [WishlistController::class, 'toggle'])->name('wishlist.toggle');
-        });
-
-        /*
-        |--------------------------------------------------------------------------
-        | REPORTS (FIX ERROR admin.reports.sales)
-        |--------------------------------------------------------------------------
-        */
+        // Reports
         Route::get('/reports/sales', function () {
             return view('admin.reports.sales');
         })->name('reports.sales');
-
-        Route::middleware('auth')->group(function () {
-        Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
-        Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
-        Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
     });
 
-    
-    });
-
-// routes/web.php (HAPUS SETELAH TESTING!)
-
+/*
+|--------------------------------------------------------------------------
+| DEBUGGING ONLY
+|--------------------------------------------------------------------------
+*/
 Route::get('/debug-midtrans', function () {
-    // Cek apakah config terbaca
     $config = [
         'merchant_id'   => config('midtrans.merchant_id'),
         'client_key'    => config('midtrans.client_key'),
@@ -176,11 +180,8 @@ Route::get('/debug-midtrans', function () {
         'is_production' => config('midtrans.is_production'),
     ];
 
-    // Test buat dummy token
     try {
         $service = new MidtransService();
-
-        // Buat dummy order untuk testing
         $dummyOrder = new \App\Models\Order();
         $dummyOrder->order_number = 'TEST-' . time();
         $dummyOrder->total_amount = 10000;
@@ -193,7 +194,6 @@ Route::get('/debug-midtrans', function () {
             'email' => 'test@example.com',
             'phone' => '08123456789',
         ];
-        // Dummy items
         $dummyOrder->items = collect([
             (object) [
                 'product_id'   => 1,
@@ -207,8 +207,6 @@ Route::get('/debug-midtrans', function () {
 
         return response()->json([
             'status'  => 'SUCCESS',
-            'message' => 'Berhasil terhubung ke Midtrans!',
-            'config'  => $config,
             'token'   => $token,
         ]);
 
@@ -216,22 +214,6 @@ Route::get('/debug-midtrans', function () {
         return response()->json([
             'status'  => 'ERROR',
             'message' => $e->getMessage(),
-            'config'  => $config,
         ], 500);
     }
-});
-
-// routes/web.php
-
-
-Route::middleware('auth')->group(function () {
-    // ... routes lainnya
-
-    // Payment Routes
-    Route::get('/orders/{order}/pay', [PaymentController::class, 'show'])
-        ->name('orders.pay');
-    Route::get('/orders/{order}/success', [PaymentController::class, 'success'])
-        ->name('orders.success');
-    Route::get('/orders/{order}/pending', [PaymentController::class, 'pending'])
-        ->name('orders.pending');
 });
