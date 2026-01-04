@@ -1,194 +1,209 @@
-{{-- ======================================== 
-FILE: resources/views/admin/dashboard.blade.php 
-FUNGSI: Dashboard admin dengan warna status yang kontras
-======================================== --}}
-
 @extends('layouts.admin')
 
 @section('title', 'Dashboard')
-@section('page-title', 'Dashboard')
 
 @section('content')
-    {{-- Stats Cards --}}
     <div class="row g-4 mb-4">
-        {{-- Total Pendapatan --}}
+        {{-- 1. Stats Cards Grid --}}
+
+        {{-- Revenue Card --}}
         <div class="col-sm-6 col-xl-3">
-            <div class="card border-0 shadow-sm h-100 stat-card rounded-4">
-                <div class="card-body p-4">
-                    <div class="d-flex align-items-center justify-content-between mb-3">
-                        <div class="stat-icon bg-success bg-opacity-10 text-success rounded-4 d-flex align-items-center justify-content-center">
-                            <i class="bi bi-wallet2 fs-3"></i>
+            <div class="card border-0 shadow-sm border-start border-4 border-success h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <p class="text-muted text-uppercase fw-semibold mb-1" style="font-size: 0.8rem">Total Pendapatan</p>
+                            <h4 class="fw-bold mb-0 text-success">
+                                Rp {{ number_format($stats['total_revenue'], 0, ',', '.') }}
+                            </h4>
                         </div>
-                        <span class="badge bg-success bg-opacity-10 text-success rounded-pill px-2 py-1 small">+12.5%</span>
+                        <div class="bg-success bg-opacity-10 p-3 rounded">
+                            <i class="bi bi-wallet2 text-success fs-3"></i>
+                        </div>
                     </div>
-                    <p class="text-muted mb-1 fw-medium small text-uppercase tracking-wider">Total Pendapatan</p>
-                    <h3 class="fw-bold mb-0 text-dark">Rp {{ number_format($stats['total_revenue'], 0, ',', '.') }}</h3>
                 </div>
             </div>
         </div>
 
-        {{-- Total Pesanan --}}
+        {{-- Pending Action Card --}}
         <div class="col-sm-6 col-xl-3">
-            <div class="card border-0 shadow-sm h-100 stat-card rounded-4">
-                <div class="card-body p-4">
-                    <div class="d-flex align-items-center justify-content-between mb-3">
-                        <div class="stat-icon bg-primary bg-opacity-10 text-primary rounded-4 d-flex align-items-center justify-content-center">
-                            <i class="bi bi-bag-check fs-3"></i>
+            <div class="card border-0 shadow-sm border-start border-4 border-warning h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <p class="text-muted text-uppercase fw-semibold mb-1" style="font-size: 0.8rem">Perlu Diproses</p>
+                            <h4 class="fw-bold mb-0 text-warning">
+                                {{ $stats['pending_orders'] }}
+                            </h4>
                         </div>
-                        <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill px-2 py-1 small">Orders</span>
+                        <div class="bg-warning bg-opacity-10 p-3 rounded">
+                            <i class="bi bi-box-seam text-warning fs-3"></i>
+                        </div>
                     </div>
-                    <p class="text-muted mb-1 fw-medium small text-uppercase tracking-wider">Total Pesanan</p>
-                    <h3 class="fw-bold mb-0 text-dark">{{ number_format($stats['total_orders'], 0, ',', '.') }}</h3>
                 </div>
             </div>
         </div>
 
-        {{-- Perlu Diproses --}}
+        {{-- Low Stock Card --}}
         <div class="col-sm-6 col-xl-3">
-            <div class="card border-0 shadow-sm h-100 stat-card rounded-4">
-                <div class="card-body p-4">
-                    <div class="d-flex align-items-center justify-content-between mb-3">
-                        <div class="stat-icon bg-warning bg-opacity-10 text-warning rounded-4 d-flex align-items-center justify-content-center">
-                            <i class="bi bi-clock-history fs-3"></i>
+            <div class="card border-0 shadow-sm border-start border-4 border-danger h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <p class="text-muted text-uppercase fw-semibold mb-1" style="font-size: 0.8rem">Stok Menipis</p>
+                            <h4 class="fw-bold mb-0 text-danger">
+                                {{ $stats['low_stock'] }}
+                            </h4>
                         </div>
-                        <span class="badge bg-warning bg-opacity-10 text-warning rounded-pill px-2 py-1 small">Pending</span>
+                        <div class="bg-danger bg-opacity-10 p-3 rounded">
+                            <i class="bi bi-exclamation-triangle text-danger fs-3"></i>
+                        </div>
                     </div>
-                    <p class="text-muted mb-1 fw-medium small text-uppercase tracking-wider">Perlu Diproses</p>
-                    <h3 class="fw-bold mb-0 text-dark">{{ $stats['pending_orders'] }}</h3>
                 </div>
             </div>
         </div>
 
-        {{-- Stok Menipis --}}
+        {{-- Total Products --}}
         <div class="col-sm-6 col-xl-3">
-            <div class="card border-0 shadow-sm h-100 stat-card rounded-4">
-                <div class="card-body p-4">
-                    <div class="d-flex align-items-center justify-content-between mb-3">
-                        <div class="stat-icon bg-danger bg-opacity-10 text-danger rounded-4 d-flex align-items-center justify-content-center">
-                            <i class="bi bi-box-seam fs-3"></i>
+            <div class="card border-0 shadow-sm border-start border-4 border-primary h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <p class="text-muted text-uppercase fw-semibold mb-1" style="font-size: 0.8rem">Total Produk</p>
+                            <h4 class="fw-bold mb-0 text-primary">
+                                {{ $stats['total_products'] }}
+                            </h4>
                         </div>
-                        <span class="badge bg-danger bg-opacity-10 text-danger rounded-pill px-2 py-1 small">Low Stock</span>
+                        <div class="bg-primary bg-opacity-10 p-3 rounded">
+                            <i class="bi bi-tags text-primary fs-3"></i>
+                        </div>
                     </div>
-                    <p class="text-muted mb-1 fw-medium small text-uppercase tracking-wider">Stok Menipis</p>
-                    <h3 class="fw-bold mb-0 text-dark">{{ $stats['low_stock'] }}</h3>
                 </div>
             </div>
         </div>
     </div>
 
     <div class="row g-4">
-        {{-- Recent Orders Table --}}
+        {{-- 2. Revenue Chart --}}
         <div class="col-lg-8">
-            <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
-                <div class="card-header bg-white py-3 px-4 d-flex justify-content-between align-items-center border-0">
-                    <h5 class="fw-bold mb-0">Pesanan Terbaru</h5>
-                    <a href="{{ route('admin.orders.index') }}" class="btn btn-sm btn-light rounded-pill px-3 fw-semibold">
-                        Semua <i class="bi bi-chevron-right small"></i>
-                    </a>
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-white py-3">
+                    <h5 class="card-title mb-0">Grafik Penjualan (7 Hari)</h5>
                 </div>
-                <div class="card-body p-0">
-                    <div class="table-responsive">
-                        <table class="table table-hover align-middle mb-0">
-                            <thead class="bg-light">
-                                <tr class="text-muted small text-uppercase tracking-wider">
-                                    <th class="ps-4 py-3 border-0">Order</th>
-                                    <th class="py-3 border-0">Customer</th>
-                                    <th class="py-3 border-0">Total</th>
-                                    <th class="py-3 border-0 text-center">Status</th>
-                                    <th class="pe-4 py-3 border-0 text-end">Aksi</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @forelse($recentOrders as $order)
-                                    <tr>
-                                        <td class="ps-4 fw-bold text-primary">#{{ $order->order_number }}</td>
-                                        <td>
-                                            <div class="fw-medium text-dark">{{ $order->user->name }}</div>
-                                            <div class="text-muted x-small">{{ $order->created_at->format('d M Y') }}</div>
-                                        </td>
-                                        <td class="fw-bold text-dark">Rp {{ number_format($order->total_amount, 0, ',', '.') }}</td>
-                                        <td class="text-center">
-                                            {{-- Badge dengan background transparan & font warna penuh --}}
-                                            <span class="badge-status status-{{ $order->status_color }}">
-                                                {{ ucfirst($order->status) }}
-                                            </span>
-                                        </td>
-                                        <td class="pe-4 text-end">
-                                            <a href="{{ route('admin.orders.show', $order) }}" class="btn btn-sm btn-icon btn-light rounded-circle shadow-none">
-                                                <i class="bi bi-eye text-muted"></i>
-                                            </a>
-                                        </td>
-                                    </tr>
-                                @empty
-                                    <tr>
-                                        <td colspan="5" class="text-center py-5 text-muted small">Belum ada pesanan masuk.</td>
-                                    </tr>
-                                @endforelse
-                            </tbody>
-                        </table>
-                    </div>
+                <div class="card-body">
+                    <canvas id="revenueChart" height="100"></canvas>
                 </div>
             </div>
         </div>
 
-        {{-- Quick Actions --}}
+        {{-- 3. Recent Orders --}}
         <div class="col-lg-4">
-            <div class="card border-0 shadow-sm rounded-4 mb-4">
-                <div class="card-header bg-white py-3 px-4 border-0">
-                    <h5 class="fw-bold mb-0">Aksi Cepat</h5>
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-white py-3">
+                    <h5 class="card-title mb-0">Pesanan Terbaru</h5>
                 </div>
-                <div class="card-body px-4 pb-4">
-                    <div class="d-grid gap-2">
-                        <a href="{{ route('admin.products.create') }}" class="btn btn-primary py-2 rounded-3 text-start px-3 shadow-none">
-                            <i class="bi bi-plus-circle me-2"></i> Tambah Produk
-                        </a>
-                        <a href="{{ route('admin.categories.index') }}" class="btn btn-outline-secondary py-2 rounded-3 text-start px-3 shadow-none border-light-subtle">
-                            <i class="bi bi-folder2-open me-2"></i> Kelola Kategori
-                        </a>
-                        <a href="{{ route('admin.reports.sales') }}" class="btn btn-outline-secondary py-2 rounded-3 text-start px-3 shadow-none border-light-subtle">
-                            <i class="bi bi-file-earmark-bar-graph me-2"></i> Laporan Penjualan
-                        </a>
+                <div class="card-body p-0">
+                    <div class="list-group list-group-flush">
+                        @foreach($recentOrders as $order)
+                            <div class="list-group-item d-flex justify-content-between align-items-center px-4 py-3">
+                                <div>
+                                    <div class="fw-bold text-primary">#{{ $order->order_number }}</div>
+                                    <small class="text-muted">{{ $order->user->name }}</small>
+                                </div>
+                                <div class="text-end">
+                                    <div class="fw-bold">Rp {{ number_format($order->total_amount, 0, ',', '.') }}</div>
+                                    <span class="badge rounded-pill
+                                        {{ $order->payment_status == 'paid' ? 'bg-success bg-opacity-10 text-success' : 'bg-secondary bg-opacity-10 text-secondary' }}">
+                                        {{ ucfirst($order->status) }}
+                                    </span>
+                                </div>
+                            </div>
+                        @endforeach
                     </div>
+                </div>
+                <div class="card-footer bg-white text-center py-3">
+                    <a href="{{ route('admin.orders.index') }}" class="text-decoration-none fw-bold">
+                        Lihat Semua Pesanan &rarr;
+                    </a>
                 </div>
             </div>
         </div>
     </div>
 
-<style>
-    /* 1. Perbaikan Ikon Agar Simetris (Tidak Gepeng) */
-    .stat-icon {
-        width: 52px;
-        height: 52px;
-        flex-shrink: 0;
-    }
+    {{-- 4. Top Selling Products --}}
+    <div class="card border-0 shadow-sm mt-4">
+        <div class="card-header bg-white py-3">
+            <h5 class="card-title mb-0">Produk Terlaris</h5>
+        </div>
+        <div class="card-body">
+            <div class="row g-4">
+                @foreach($topProducts as $product)
+                    <div class="col-6 col-md-2 text-center">
+                        <div class="card h-100 border-0 hover-shadow transition">
+                            <img src="{{ $product->image_url }}" class="card-img-top rounded mb-2" style="max-height: 100px; object-fit: cover;">
+                            <h6 class="card-title text-truncate" style="font-size: 0.9rem">{{ $product->name }}</h6>
+                            <small class="text-muted">{{ $product->sold }} terjual</small>
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+        </div>
+    </div>
 
-    /* 2. Custom Badge Status (Warna Font Full & Background Soft) */
-    .badge-status {
-        display: inline-block;
-        padding: 0.45em 1.2em;
-        font-size: 0.75rem;
-        font-weight: 700;
-        line-height: 1;
-        text-align: center;
-        white-space: nowrap;
-        vertical-align: baseline;
-        border-radius: 50rem;
-    }
+    {{-- Script Chart.js --}}
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        const ctx = document.getElementById('revenueChart').getContext('2d');
 
-    /* Varian Warna Status */
-    .status-success { background-color: rgba(25, 135, 84, 0.15); color: #198754; } /* Hijau */
-    .status-warning { background-color: rgba(255, 193, 7, 0.15); color: #997404; } /* Kuning Tua (Agar Terbaca) */
-    .status-danger { background-color: rgba(220, 53, 69, 0.15); color: #dc3545; }  /* Merah */
-    .status-primary { background-color: rgba(13, 110, 253, 0.15); color: #0d6efd; } /* Biru */
-    .status-secondary { background-color: rgba(108, 117, 125, 0.15); color: #6c757d; } /* Abu */
+        // Data dari Controller (Blade to JS)
+        const labels = {!! json_encode($revenueChart->pluck('date')) !!};
+        const data = {!! json_encode($revenueChart->pluck('total')) !!};
 
-    /* Styling Tambahan */
-    .stat-card { transition: all 0.3s ease; border: 1px solid rgba(0,0,0,0.03) !important; }
-    .stat-card:hover { transform: translateY(-5px); box-shadow: 0 10px 25px rgba(0,0,0,0.08) !important; }
-    .rounded-4 { border-radius: 1rem !important; }
-    .tracking-wider { letter-spacing: 0.05em; }
-    .x-small { font-size: 0.75rem; }
-    .btn-icon { width: 32px; height: 32px; display: inline-flex; align-items: center; justify-content: center; padding: 0; }
-    .table thead th { background-color: #f8f9fa; }
-</style>
+        new Chart(ctx, {
+            type: 'line', // Jenis grafik: Line chart
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Pendapatan (Rp)',
+                    data: data,
+                    borderColor: '#0d6efd', // Bootstrap Primary Color
+                    backgroundColor: 'rgba(13, 110, 253, 0.1)',
+                    borderWidth: 2,
+                    tension: 0.3, // Membuat garis sedikit melengkung (smooth)
+                    fill: true,
+                    pointRadius: 4,
+                    pointHoverRadius: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false, // Penting agar Chart menyesuaikan container
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                // Format Tooltip jadi Rupiah
+                                return 'Rp ' + new Intl.NumberFormat('id-ID').format(context.raw);
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: { borderDash: [2, 4] },
+                        ticks: {
+                            callback: function(value) {
+                                return 'Rp ' + new Intl.NumberFormat('id-ID', { notation: "compact" }).format(value);
+                            }
+                        }
+                    },
+                    x: {
+                        grid: { display: false }
+                    }
+                }
+            }
+        });
+    </script>
 @endsection

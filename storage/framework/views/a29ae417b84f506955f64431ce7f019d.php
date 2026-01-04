@@ -1,0 +1,1 @@
+<?php /**PATH /home/haitsam/Documents/pkl-2025/resources/views/admin/dashboard.blade.php ENDPATH**/ ?>
