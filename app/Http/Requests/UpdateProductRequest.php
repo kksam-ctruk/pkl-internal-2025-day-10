@@ -1,6 +1,4 @@
 <?php
-// app/Http/Requests/StoreProductRequest.php
-
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
@@ -8,67 +6,69 @@ use Illuminate\Foundation\Http\FormRequest;
 class UpdateProductRequest extends FormRequest
 {
     /**
-     * Tentukan apakah user diizinkan membuat request ini.
+     * Tentukan apakah user diizinkan melakukan update produk.
      */
     public function authorize(): bool
     {
-        // Hanya user dengan role 'admin' yang boleh menambah produk.
-        // auth()->check() memastikan user sudah login.
+        // Sama seperti store: hanya admin
         return auth()->check() && auth()->user()->role === 'admin';
     }
 
     /**
-     * Aturan validasi untuk data yang dikirim.
+     * Aturan validasi update produk.
      */
     public function rules(): array
     {
         return [
-            // category_id harus ada di tabel categories kolom id
-            'category_id' => ['required', 'exists:categories,id'],
+            // ======================
+            // DATA PRODUK
+            // ======================
+            'category_id'     => ['required', 'exists:categories,id'],
 
-            'name' => ['required', 'string', 'max:255'],
-            'description' => ['nullable', 'string'],
+            'name'            => ['required', 'string', 'max:255'],
+            'description'     => ['nullable', 'string'],
 
-            // Harga minimal 1000 rupiah
-            'price' => ['required', 'numeric', 'min:1000'],
+            'price'           => ['required', 'numeric', 'min:1000'],
 
-            // Harga diskon (opsional), tapi jika diisi:
-            // 1. Harus numeric
-            // 2. Minimal 0
-            // 3. Harus KURANG DARI ('lt' = less than) harga asli (price)
-            'discount_price' => ['nullable', 'numeric', 'min:0', 'lt:price'],
+            // discount_price harus < price
+            'discount_price'  => ['nullable', 'numeric', 'min:0', 'lt:price'],
 
-            'stock' => ['required', 'integer', 'min:0'],
-            'weight' => ['required', 'integer', 'min:1'], // Berat minimal 1 gram
+            'stock'           => ['required', 'integer', 'min:0'],
+            'weight'          => ['required', 'integer', 'min:1'],
 
-            'is_active' => ['boolean'],
-            'is_featured' => ['boolean'],
+            'is_active'       => ['boolean'],
+            'is_featured'     => ['boolean'],
 
-            // Validasi Array Gambar
-            // 'images' harus berupa array
-            // Maksimal 10 file sekaligus
-            'images' => ['nullable', 'array', 'max:10'],
-
-            // Validasi TIAP item di dalam array images
-            // 'images.*' artinya "setiap file di dalam array images"
-            'images.*' => [
-                'image', // Harus berupa file gambar
-                'mimes:jpg,png,webp', // Ekstensi yang diperbolehkan
-                'max:2048' // Maksimal 2MB per file (2048 KB)
+            // ======================
+            // GAMBAR BARU (OPTIONAL)
+            // ======================
+            'images'          => ['nullable', 'array', 'max:10'],
+            'images.*'        => [
+                'image',
+                'mimes:jpg,jpeg,png,webp',
+                'max:2048', // 2MB
             ],
+
+            // ======================
+            // HAPUS GAMBAR LAMA
+            // ======================
+            'delete_images'   => ['nullable', 'array'],
+            'delete_images.*' => ['integer', 'exists:product_images,id'],
+
+            // ======================
+            // SET PRIMARY IMAGE
+            // ======================
+            'primary_image'   => ['nullable', 'integer', 'exists:product_images,id'],
         ];
     }
 
     /**
-     * Persiapkan data sebelum validasi dijalankan.
-     * Berguna untuk normalisasi data.
+     * Normalisasi data sebelum validasi.
      */
     protected function prepareForValidation(): void
     {
-        // Checkbox di HTML kadang tidak mengirim value jika tidak dicentang (atau kirim string "on").
-        // Kita paksa konversi jadi boolean true/false agar database menerima nilai yang benar (1/0).
         $this->merge([
-            'is_active' => $this->boolean('is_active'),
+            'is_active'   => $this->boolean('is_active'),
             'is_featured' => $this->boolean('is_featured'),
         ]);
     }

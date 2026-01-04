@@ -9,16 +9,18 @@ class CartItem extends Model
         'cart_id',
         'product_id',
         'quantity',
-
     ];
+
     protected $casts = [
         'quantity' => 'integer',
     ];
+
     // ==================== RELATIONSHIPS ====================
     public function cart()
     {
         return $this->belongsTo(Cart::class);
     }
+
     public function product()
     {
         return $this->belongsTo(Product::class);
@@ -27,29 +29,35 @@ class CartItem extends Model
     // ==================== ACCESSORS ====================
     public function getTotalPriceAttribute()
     {
-        return $this->product->discount_price * $this->quantity;
+        // fallback ke price jika discount_price null
+        $price = $this->product->discount_price ?? $this->product->price ?? 0;
+        return $price * $this->quantity;
     }
+
     public function getTotalWeightAttribute()
     {
-        return $this->product->weight * $this->quantity;
+        // fallback ke 0 jika weight null
+        $weight = $this->product->weight ?? 0;
+        return $weight * $this->quantity;
     }
+
     // ==================== BOOT ====================
     protected static function boot()
     {
         parent::boot();
+
         static::creating(function ($cartItem) {
-            // Pastikan relasi product ter-load
             if (! $cartItem->relationLoaded('product')) {
                 $cartItem->load('product');
             }
             if (! $cartItem->product) {
                 throw new \Exception('Produk tidak ditemukan.');
             }
-            // Cek stok produk sebelum menambahkan ke item keranjang
             if ($cartItem->quantity > $cartItem->product->stock) {
                 throw new \Exception('Stok produk tidak mencukupi.');
             }
         });
+
         static::updating(function ($cartItem) {
             if (! $cartItem->relationLoaded('product')) {
                 $cartItem->load('product');
@@ -57,7 +65,6 @@ class CartItem extends Model
             if (! $cartItem->product) {
                 throw new \Exception('Produk tidak ditemukan.');
             }
-            // Cek stok produk sebelum memperbarui item keranjang
             if ($cartItem->quantity > $cartItem->product->stock) {
                 throw new \Exception('Stok produk tidak mencukupi.');
             }
@@ -71,5 +78,4 @@ class CartItem extends Model
     {
         return $this->total_price;
     }
-
 }

@@ -1,180 +1,87 @@
-{{-- ================================================================
+{{-- ================================================
      FILE: resources/views/partials/product-card.blade.php
-     ================================================================
+     FUNGSI: Komponen kartu produk dengan gaya Modern & Clean
+     ================================================ --}}
 
-     KOMPONEN REUSABLE untuk menampilkan kartu produk
-     Dipanggil dengan: @include('partials.product-card', ['product' => $p])
-
-     ================================================================ --}}
-
-<div class="card product-card h-100 border-0 shadow-sm">
-{{-- ↑ MULTIPLE CSS CLASSES:
-     - card: Bootstrap card component
-     - product-card: Custom class kita (bisa di-style di CSS)
-     - h-100: Height 100% (semua card sama tinggi di grid)
-     - border-0: Hilangkan border
-     - shadow-sm: Bayangan kecil --}}
-
-    <div class="position-relative">
-    {{-- ↑ Kontainer untuk gambar + badge
-         position-relative agar child bisa position-absolute --}}
-
+<div class="card product-card h-100 border-0 shadow-sm transition-hover">
+    {{-- Product Image --}}
+    <div class="position-relative overflow-hidden" style="border-radius: 20px 20px 0 0;">
         <a href="{{ route('catalog.show', $product->slug) }}">
-        {{-- ↑ Link ke halaman detail produk
-             $product->slug misalnya "laptop-gaming-asus"
-             Hasil URL: /products/laptop-gaming-asus --}}
-
-            <img src="{{ $product->image_url }}"
-                 class="card-img-top"
-                 alt="{{ $product->name }}"
-                 style="height: 200px; object-fit: cover;">
-            {{-- ↑ object-fit: cover
-                 Gambar akan di-crop agar pas di kotak 200px
-                 tanpa distorsi rasio aspek --}}
+            <img src="{{ $product->image_url }}" class="card-img-top img-zoom" alt="{{ $product->name }}"
+                style="height: 220px; object-fit: cover;">
         </a>
 
+        {{-- Badge Diskon --}}
         @if($product->has_discount)
-        {{-- ↑ DIRECTIVE KONDISIONAL @if
-
-             $product->has_discount adalah ACCESSOR di Model:
-             public function getHasDiscountAttribute() {
-                 return $this->discount_price !== null
-                     && $this->discount_price < $this->price;
-             }
-
-             Jika true, tampilkan badge diskon --}}
-
-            <span class="badge-discount">
-                -{{ $product->discount_percentage }}%
-            </span>
-            {{-- ↑ Badge di pojok kiri atas gambar
-                 Karena parent position-relative dan ini position-absolute
-                 (didefinisikan di CSS) --}}
+        <span class="badge bg-danger position-absolute top-0 start-0 m-3 px-3 py-2 rounded-pill shadow-sm fw-bold" style="z-index: 2;">
+            <i class="bi bi-tag-fill me-1"></i> -{{ $product->discount_percentage }}%
+        </span>
         @endif
-        {{-- ↑ Tutup @if --}}
 
+        {{-- Wishlist Button --}}
         @auth
-        {{-- ↑ DIRECTIVE @auth - Hanya tampil jika user sudah login
-
-             SAMA DENGAN:
-             @if(Auth::check())
-
-             KEBALIKANNYA:
-             @guest - hanya tampil jika belum login --}}
-
-            <button type="button"
-                    onclick="toggleWishlist({{ $product->id }})"
-                    {{-- ↑ Memanggil function JavaScript dengan product ID --}}
-                    class="btn btn-light btn-sm position-absolute top-0 end-0 m-2 rounded-circle wishlist-btn-{{ $product->id }}">
-                    {{-- ↑ Class dinamis: wishlist-btn-123
-                         Digunakan JavaScript untuk find & update button --}}
-
-                <i class="bi {{ auth()->user()->hasInWishlist($product) ? 'bi-heart-fill text-danger' : 'bi-heart' }}"></i>
-                {{-- ↑ TERNARY OPERATOR di Blade
-
-                     Syntax: kondisi ? nilai_true : nilai_false
-
-                     auth()->user() = Ambil object User yang login
-                     ->hasInWishlist($product) = Method di Model User
-                     yang cek apakah produk ada di wishlist user
-
-                     Jika ada: icon heart filled warna merah
-                     Jika tidak: icon heart outline --}}
-            </button>
+        <button type="button" onclick="toggleWishlist({{ $product->id }})"
+            class="btn btn-white shadow-sm position-absolute top-0 end-0 m-3 rounded-circle d-flex align-items-center justify-content-center p-0"
+            style="width: 35px; height: 35px; z-index: 2;">
+            <i class="bi {{ auth()->user()->hasInWishlist($product) ? 'bi-heart-fill text-danger' : 'bi-heart' }} fs-6"></i>
+        </button>
         @endauth
     </div>
 
-    <div class="card-body d-flex flex-column">
-    {{-- ↑ flex-column agar footer card bisa di-push ke bawah --}}
+    {{-- Card Body --}}
+    <div class="card-body d-flex flex-column p-4">
+        {{-- Category --}}
+        <div class="mb-2 text-uppercase tracking-wider small text-muted fw-semibold">
+            {{ $product->category->name }}
+        </div>
 
-        <small class="text-muted mb-1">{{ $product->category->name }}</small>
-        {{-- ↑ Mengakses RELASI
-             $product->category = object Category (dari belongsTo)
-             ->name = nama kategori
-
-             Ini bisa dilakukan karena di Controller sudah
-             dilakukan Eager Loading: with(['category']) --}}
-
-        <h6 class="card-title mb-2">
-            <a href="{{ route('catalog.show', $product->slug) }}"
-               class="text-decoration-none text-dark stretched-link">
-               {{-- ↑ stretched-link: Membuat SELURUH card clickable
-                    (Bootstrap feature) --}}
-
-                {{ Str::limit($product->name, 40) }}
-                {{-- ↑ Str::limit() - Potong string jika terlalu panjang
-                     "Laptop Gaming ASUS ROG Strix..." -> max 40 karakter
-                     Ditambah "..." jika dipotong --}}
+        {{-- Product Name --}}
+        <h6 class="card-title mb-3 fs-6 lh-base">
+            <a href="{{ route('catalog.show', $product->slug) }}" class="text-decoration-none text-dark fw-bold stretched-link">
+                {{ Str::limit($product->name, 45) }}
             </a>
         </h6>
 
+        {{-- Price --}}
         <div class="mt-auto">
-        {{-- ↑ mt-auto: Margin-top auto
-             Flex item ini akan "push" ke bawah
-             Membuat harga selalu di bawah card --}}
-
             @if($product->has_discount)
+            <div class="d-flex align-items-center gap-2 mb-1">
                 <small class="text-muted text-decoration-line-through">
                     {{ $product->formatted_original_price }}
                 </small>
-                {{-- ↑ Harga asli dicoret --}}
+            </div>
             @endif
-
-            <div class="fw-bold text-primary">
+            <div class="fs-5 fw-black text-primary">
                 {{ $product->formatted_price }}
-                {{-- ↑ Accessor: return 'Rp ' . number_format(...) --}}
             </div>
         </div>
 
-        @if($product->stock <= 5 && $product->stock > 0)
-        {{-- ↑ Multiple conditions dengan && --}}
-            <small class="text-warning mt-2">
-                <i class="bi bi-exclamation-triangle"></i>
-                Stok tinggal {{ $product->stock }}
-            </small>
-        @elseif($product->stock == 0)
-        {{-- ↑ @elseif untuk kondisi alternatif --}}
-            <small class="text-danger mt-2">
-                <i class="bi bi-x-circle"></i> Stok Habis
-            </small>
-        @endif
-        {{-- ↑ Kalau stok > 5, tidak tampilkan apapun --}}
+        {{-- Stock Info --}}
+        <div class="mt-3">
+            @if($product->stock <= 5 && $product->stock > 0)
+                <div class="p-2 rounded-3 bg-warning-subtle text-warning-emphasis small border border-warning-subtle">
+                    <i class="bi bi-fire me-1"></i> Sisa {{ $product->stock }} lagi!
+                </div>
+            @elseif($product->stock == 0)
+                <div class="p-2 rounded-3 bg-secondary-subtle text-secondary small border border-secondary-subtle">
+                    <i class="bi bi-slash-circle me-1"></i> Habis
+                </div>
+            @endif
+        </div>
     </div>
 
-    <div class="card-footer bg-white border-0 pt-0">
-        <form action="{{ route('cart.add') }}" method="POST">
-        {{-- ↑ FORM HTML dengan method POST
-             action = URL tujuan form
-             method = HTTP method --}}
-
+    {{-- Card Footer --}}
+    <div class="card-footer bg-white border-0 p-4 pt-0">
+        <form action="{{ route('cart.add') }}" method="POST" class="position-relative" style="z-index: 3;">
             @csrf
-            {{-- ↑ DIRECTIVE @csrf - WAJIB untuk setiap form POST!
-
-                 Menghasilkan:
-                 <input type="hidden" name="_token" value="random_token_123">
-
-                 Laravel akan validasi token ini
-                 Jika tidak ada atau tidak cocok = 419 error
-
-                 INI MENCEGAH CSRF ATTACK --}}
-
             <input type="hidden" name="product_id" value="{{ $product->id }}">
             <input type="hidden" name="quantity" value="1">
-            {{-- ↑ Hidden input: data yang dikirim tapi tidak terlihat user --}}
-
-            <button type="submit"
-                    class="btn btn-primary btn-sm w-100"
-                    @if($product->stock == 0) disabled @endif>
-                    {{-- ↑ ATTRIBUTE KONDISIONAL
-                         Jika stok 0, tambahkan attribute disabled
-                         Hasil: <button disabled>
-                         Button tidak bisa diklik --}}
-
-                <i class="bi bi-cart-plus me-1"></i>
+            <button type="submit" class="btn btn-primary btn-pill w-100 py-2 fw-bold d-flex align-items-center justify-content-center gap-2" 
+                @if($product->stock == 0) disabled @endif>
                 @if($product->stock == 0)
-                    Stok Habis
+                    Sudah Terjual
                 @else
-                    Tambah Keranjang
+                    <i class="bi bi-cart-plus fs-5"></i> Tambah
                 @endif
             </button>
         </form>

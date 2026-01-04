@@ -1,102 +1,162 @@
 <?php
+// app/Services/CartService.php
 
 namespace App\Services;
 
 use App\Models\Cart;
+use App\Models\CartItem;
 use App\Models\Product;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Session;
 
 class CartService
 {
     /**
-     * Mengambil data keranjang user yang sedang login.
+     * Mendapatkan (atau membuat) keranjang untuk user saat ini.
+     * Menggunakan Session ID untuk guest, dan User ID untuk member.
      */
-    public function getCart()
+    public function getCart(): Cart
     {
-        if (!auth()->check()) {
-            throw new \Exception("Anda harus login untuk mengakses keranjang.");
+        if (Auth::check()) {
+            // Skenario 1: User Login
+            // Kita cari cart milik user ini. Jika belum ada, buat baru.
+            return Cart::firstOrCreate(['user_id' => Auth::id()]);
+        } else {
+            // Skenario 2: Guest (Belum Login)
+            // Kita gunakan Session ID bawaan Laravel sebagai penanda unik.
+            // Session ID ini tersimpan di cookie browser user.
+            $sessionId = Session::getId();
+            return Cart::firstOrCreate(['session_id' => $sessionId]);
         }
-        
-        return Cart::firstOrCreate(['user_id' => auth()->id()]);
     }
 
     /**
-     * Menambah produk ke keranjang.
+     * Menambahkan produk ke keranjang.
+     * Handle logika: Baru vs Existing, dan Cek Stok.
      */
-    public function addProduct(Product $product, int $quantity)
+    public function addProduct(Product $product, int $quantity = 1): void
     {
-        // Cek stok awal
-        if (!$product->hasStock($quantity)) {
-            throw new \Exception("Stok tidak mencukupi. Sisa stok: {$product->stock}");
-        }
-
         $cart = $this->getCart();
-        
-        return DB::transaction(function () use ($cart, $product, $quantity) {
-            $item = $cart->items()->where('product_id', $product->id)->first();
 
-            if ($item) {
-                $newQty = $item->quantity + $quantity;
-                
-                // Validasi total quantity terhadap stok
-                if (!$product->hasStock($newQty)) {
-                    throw new \Exception("Gagal menambah: Total di keranjang melebihi stok tersedia.");
-                }
-                
-                $item->update([
-                    'quantity' => $newQty,
-                    'subtotal' => $newQty * $product->display_price
-                ]);
-            } else {
-                $cart->items()->create([
-                    'product_id' => $product->id,
-                    'quantity' => $quantity,
-                    'price_at_purchase' => $product->display_price,
-                    'subtotal' => $quantity * $product->display_price
-                ]);
+        // Cek apakah produk sudah ada di keranjang kita?
+        $existingItem = $cart->items()->where('product_id', $product->id)->first();
+
+        if ($existingItem) {
+            // CASE A: Produk SUDAH ADA, update jumlahnya
+            $newQuantity = $existingItem->quantity + $quantity;
+
+            // Validasi Stok (Penting!)
+            // Jangan sampai user memasukkan barang melebihi stok gudang.
+            if ($newQuantity > $product->stock) {
+                throw new \Exception("Stok tidak mencukupi. Maksimal: {$product->stock}");
             }
-        });
+
+            $existingItem->update(['quantity' => $newQuantity]);
+        } else {
+            // CASE B: Produk BARU, buat item baru
+            // Validasi Stok Awal
+            if ($quantity > $product->stock) {
+                throw new \Exception("Stok tidak mencukupi.");
+            }
+
+            $cart->items()->create([
+                'product_id' => $product->id,
+                'quantity'   => $quantity,
+            ]);
+        }
+
+        // Update timestamp 'updated_at' di tabel carts
+        // Berguna untuk fitur "Hapus keranjang sampah/lama" (Garbage Collection) nanti.
+        $cart->touch();
     }
 
     /**
-     * Update jumlah item di keranjang.
+     * Mengupdate jumlah item (misal dari halaman keranjang).
      */
-    public function updateQuantity($itemId, $quantity)
+    public function updateQuantity(int $itemId, int $quantity): void
     {
-        $cart = $this->getCart();
-        $item = $cart->items()->with('product')->findOrFail($itemId);
+        $item    = CartItem::findOrFail($itemId);
+        $product = $item->product;
 
-        // Jika quantity 0 atau kurang, hapus item
+        // Security Check: Pastikan item ini MILIK cart user yang sedang login/aktif.
+        // Mencegah user iseng mengedit ID item milik orang lain.
+        $this->verifyCartOwnership($item->cart);
+
+        // Validasi Stok Real-time
+        if ($quantity > $product->stock) {
+            throw new \Exception("Stok tidak mencukupi. Tersisa: {$product->stock}");
+        }
+
         if ($quantity <= 0) {
-            return $this->removeItem($itemId);
+            $item->delete(); // Jika diupdate jadi 0 atau minus, hapus saja.
+        } else {
+            $item->update(['quantity' => $quantity]);
         }
-
-        // Cek ketersediaan stok produk
-        if (!$item->product->hasStock($quantity)) {
-            throw new \Exception("Gagal update: Stok hanya tersedia {$item->product->stock}");
-        }
-
-        return $item->update([
-            'quantity' => $quantity,
-            'subtotal' => $quantity * $item->product->display_price
-        ]);
     }
 
     /**
-     * Menghapus satu item dari keranjang.
+     * Menghapus item dari keranjang.
      */
-    public function removeItem($itemId)
+    public function removeItem(int $itemId): void
     {
-        $cart = $this->getCart();
-        return $cart->items()->where('id', $itemId)->delete();
+        $item = CartItem::findOrFail($itemId);
+
+        // Security Check lagi
+        $this->verifyCartOwnership($item->cart);
+
+        $item->delete();
     }
 
     /**
-     * Mengosongkan seluruh keranjang (opsional).
+     * Menggabungkan keranjang Guest ke User saat Login.
+     * Logika: "Pindahkan" belanjaan saat jadi tamu ke akun asli.
      */
-    public function clearCart()
+    public function mergeCartOnLogin(): void
     {
-        $cart = $this->getCart();
-        return $cart->items()->delete();
+        // 1. Ambil cart sesi tamu (sebelum session ID diregenerate login)
+        $sessionId = Session::getId();
+        $guestCart = Cart::where('session_id', $sessionId)->with('items')->first();
+
+        // Jika tidak ada belanjaan tamu, selesai.
+        if (! $guestCart) {
+            return;
+        }
+
+        // 2. Ambil/Buat cart user yang baru login (tujuan)
+        $userCart = Cart::firstOrCreate(['user_id' => Auth::id()]);
+
+        // 3. Loop setiap item tamu
+        foreach ($guestCart->items as $item) {
+            // Cek apakah produk ini SUDAH ADA di cart user?
+            $existingUserItem = $userCart->items()
+                ->where('product_id', $item->product_id)
+                ->first();
+
+            if ($existingUserItem) {
+                // Skenario: User sudah punya produk X, Tamu juga punya produk X.
+                // Solusi: Tambahkan quantity (Merge)
+                $existingUserItem->increment('quantity', $item->quantity);
+            } else {
+                // Skenario: User belum punya.
+                // Solusi: Pindahkan kepemilikan item ke cart user.
+                $item->update(['cart_id' => $userCart->id]);
+            }
+        }
+
+        // 4. Hapus gerobak tamu yang sudah kosong/dipindahkan
+        $guestCart->delete();
+    }
+
+    /**
+     * Helper untuk memastikan user berhak mengubah cart ini
+     * Mencegah Insecure Direct Object Reference (IDOR)
+     */
+    private function verifyCartOwnership(Cart $cart): void
+    {
+        $currentCart = $this->getCart();
+        // Bandingkan ID cart yang mau diedit dengan ID cart user saat ini
+        if ($cart->id !== $currentCart->id) {
+            abort(403, 'Akses ditolak. Ini bukan keranjang Anda.');
+        }
     }
 }

@@ -1,35 +1,31 @@
 <?php
-
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 
 class Order extends Model
 {
+    /** @use HasFactory<\Database\Factories\OrderFactory> */
     use HasFactory;
 
-  
+    protected $fillable = [
+        'order_number',
+        'user_id',
+        'total_amount',
+        'shipping_cost',
+        'shipping_name',
+        'shipping_phone',
+        'shipping_address',
+        'payment_status',
+        'snap_token',
+        'status',
+    ];
 
-    /**
-     * Relasi ke OrderItems
-     */
-    public function items(): HasMany
+    public function items()
     {
         return $this->hasMany(OrderItem::class);
     }
-    protected $fillable = [
-    'user_id',
-    'order_number',
-    'total_amount',
-    'status',
-    'shipping_name',    // Sesuai DB
-    'shipping_phone',   // Sesuai DB
-    'shipping_address', // Sesuai DB
-    'payment_method'
-];
-
 
     public function user()
     {

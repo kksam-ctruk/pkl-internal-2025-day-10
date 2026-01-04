@@ -75,32 +75,25 @@ class CatalogController extends Controller
             default      => $query->latest(), // newest
         };
 
-         // ================================================
-         // 7. PAGINATION
-         // withQueryString() menjaga parameter filter di URL pagination
-         // ================================================
-         $products = $query->paginate(12)->withQueryString();
- 
+        // ================================================
+        // 7. PAGINATION
+        // withQueryString() menjaga parameter filter di URL pagination
+        // ================================================
+        $products = $query->paginate(12)->withQueryString();
+
         // ================================================
         // 8. DATA SIDEBAR
         // Kategori untuk filter
         // ================================================
         $categories = Category::query()
-        ->active()
-        // Gunakan whereHas agar SQLite tidak error (menggantikan having)
-        ->whereHas('products', function($q) {
-         $q->active()->inStock();
-         })
-        // Gunakan alias 'products as active_products_count' agar sesuai dengan variabel di view
-        ->withCount(['products as active_products_count' => function($q) {
-         $q->active()->inStock();
-        }])
-        // JANGAN pakai ->having() di sini
-        ->orderBy('name')
-        ->get();
- 
-         return view('catalog.index', compact('products', 'categories'));
-     }
+            ->active()
+            ->withCount(['activeProducts'])
+            ->having('active_products_count', '>', 0)
+            ->orderBy('name')
+            ->get();
+
+        return view('catalog.index', compact('products', 'categories'));
+    }
 
     /**
      * Menampilkan halaman detail produk.

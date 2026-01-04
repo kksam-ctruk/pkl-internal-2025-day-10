@@ -168,6 +168,7 @@ class MidtransNotificationController extends Controller
         // Update Order
         $order->update([
             'status' => 'processing', // Siap diproses/dikirim
+            'payment_status' => 'paid', // Tandai sudah dibayar
         ]);
 
         // Update Payment
@@ -236,6 +237,4 @@ class MidtransNotificationController extends Controller
 
         // TODO: Logic tambahan untuk refund
     }
-
-    
 }
