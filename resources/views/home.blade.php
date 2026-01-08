@@ -107,7 +107,8 @@
                     </span>
 
                     <h1 class="display-4 hero-title mb-4">
-                        Belanja Online <span class="text-primary">Mudah</span><br>
+                        Belanja elektronik <span class="text-warning">Cepat</span>
+                        <span class="text-primary">Mudah</span>
                         & <span class="text-success">Terpercaya</span>
                     </h1>
 
@@ -117,7 +118,7 @@
                     </p>
 
                     <div class="d-flex gap-3 flex-wrap">
-                        <a href="{{ route('catalog.index') }}" class="btn btn-primary btn-pill shadow-sm">
+                        <a href="{{ route('catalog.index') }}" class="btn btn-outline-warning btn-pill shadow-sm text-dark">
                              Mulai Belanja
                         </a>
                         <a href="#promo" class="btn btn-outline-dark btn-pill">
@@ -127,19 +128,19 @@
 
                     <div class="row mt-5 g-3">
                         <div class="col-auto">
-                            <small class="text-muted"><i class="bi bi-check-circle-fill text-success me-2"></i>Aman</small>
+                            <small class="text-muted"><i class="bi bi-check-circle-fill text-success me-2"></i>Terpercaya</small>
                         </div>
                         <div class="col-auto">
-                            <small class="text-muted"><i class="bi bi-truck text-primary me-2"></i>Cepat</small>
+                            <small class="text-muted"><i class="bi bi-truck text-warning me-2"></i>Cepat</small>
                         </div>
                         <div class="col-auto">
-                            <small class="text-muted"><i class="bi bi-star-fill text-warning me-2"></i>Terbaik</small>
+                            <small class="text-muted"><i class="bi bi-star text-primary me-2"></i>Mudah</small>
                         </div>
                     </div>
                 </div>
 
                 <div class="col-lg-6 d-none d-lg-block text-center">
-                    <img src="{{ asset('images/hero-shopping.svg') }}" 
+                    <img src="{{ asset('images/flashsale.png') }}" 
                          alt="Shopping" 
                          class="img-fluid floating"
                          style="max-height: 450px;">

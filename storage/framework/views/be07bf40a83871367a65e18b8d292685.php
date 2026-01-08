@@ -47,6 +47,14 @@
         <div class="card shadow-sm border-0 bg-light">
             <div class="card-body">
                 <h6 class="fw-bold mb-3">Update Status Order</h6>
+                
+                <?php if(session('success')): ?>
+                    <div class="alert alert-success small py-2"><?php echo e(session('success')); ?></div>
+                <?php endif; ?>
+                <?php if(session('error')): ?>
+                    <div class="alert alert-danger small py-2"><?php echo e(session('error')); ?></div>
+                <?php endif; ?>
+
                 <form action="<?php echo e(route('admin.orders.update-status', $order)); ?>" method="POST">
                     <?php echo csrf_field(); ?>
                     <?php echo method_field('PATCH'); ?>
@@ -55,9 +63,9 @@
                         <label class="form-label small text-muted">Status Saat Ini: <strong><?php echo e(ucfirst($order->status)); ?></strong></label>
                         <select name="status" class="form-select">
                             <option value="pending" <?php echo e($order->status == 'pending' ? 'selected' : ''); ?>>Pending</option>
-                            <option value="processing" <?php echo e($order->status == 'processing' ? 'selected' : ''); ?>>Processing (Sedang Dikemas)</option>
-                            <option value="completed" <?php echo e($order->status == 'completed' ? 'selected' : ''); ?>>Completed (Selesai/Dikirim)</option>
-                            <option value="cancelled" <?php echo e($order->status == 'cancelled' ? 'selected' : ''); ?>>Cancelled (Batalkan & Restock)</option>
+                            <option value="processing" <?php echo e($order->status == 'processing' ? 'selected' : ''); ?>>Processing</option>
+                            <option value="completed" <?php echo e($order->status == 'completed' ? 'selected' : ''); ?>>Completed (Selesai)</option>
+                            <option value="cancelled" <?php echo e($order->status == 'cancelled' ? 'selected' : ''); ?>>Cancelled</option>
                         </select>
                     </div>
 
@@ -68,7 +76,7 @@
 
                 <?php if($order->status == 'cancelled'): ?>
                     <div class="alert alert-danger mt-3 mb-0 small">
-                        <i class="bi bi-info-circle"></i> Pesanan ini telah dibatalkan. Stok produk telah dikembalikan otomatis.
+                        <i class="bi bi-info-circle"></i> Pesanan ini telah dibatalkan.
                     </div>
                 <?php endif; ?>
             </div>

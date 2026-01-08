@@ -180,7 +180,7 @@ FUNGSI: Manajemen kategori dengan Image Preview & UI Modern
             <div class="modal-body p-4">
                 <div class="mb-3">
                     <label class="form-label fw-bold small text-muted text-uppercase">Nama Kategori</label>
-                    <input type="text" name="name" class="form-control py-2 shadow-none" placeholder="Elektronik, Pakaian, dll." required>
+                    <input type="text" name="name" class="form-control py-2 shadow-none" placeholder="Buat Category Elektronik" required>
                 </div>
                 <div class="mb-3">
                     <label class="form-label fw-bold small text-muted text-uppercase">Gambar</label>

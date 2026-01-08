@@ -3,12 +3,12 @@ FILE: resources/views/partials/navbar.blade.php
 FUNGSI: Navigation bar modern dengan Ikon Katalog
 ================================================ --}}
 
-<nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm sticky-top py-3">
+<nav class="navbar navbar-expand-lg navbar-dark bg-black shadow-sm sticky-top py-3">
     <div class="container">
         {{-- Logo & Brand --}}
-        <a class="navbar-brand fw-bold text-primary d-flex align-items-center" href="{{ route('home') }}">
-            <i class="bi bi-bag-heart-fill fs-3 me-2"></i>
-            <span style="letter-spacing: -0.5px;">TokoOnline</span>
+        <a class="navbar-brand fw-bold text-warning d-flex align-items-center" href="{{ route('home') }}">
+            <img src="{{ asset('images/SS.png') }}" alt="Logo Samssums" srcset="" class="" width="40" height="40" >
+            <span style="letter-spacing: -0.5px;">Samssums</span>
         </a>
 
         {{-- Mobile Toggle --}}
@@ -32,13 +32,14 @@ FUNGSI: Navigation bar modern dengan Ikon Katalog
                 </div>
             </form>
 
+                        , 
             {{-- Right Menu --}}
             <ul class="navbar-nav ms-auto align-items-center">
                 {{-- Katalog dengan Icon --}}
                 <li class="nav-item">
                     <a class="nav-link fw-medium mx-lg-2 d-flex align-items-center link-katalog" href="{{ route('catalog.index') }}">
-                        <i class="bi bi-grid-fill me-2 fs-5"></i>
-                        <span>Katalog</span>
+                        <i class="bi bi-grid-fill me-2 fs-5 "></i>
+                        <span class="text-light">Katalog</span>
                     </a>
                 </li>
 
@@ -46,7 +47,7 @@ FUNGSI: Navigation bar modern dengan Ikon Katalog
                 {{-- Wishlist --}}
                 <li class="nav-item">
                     <a class="nav-link position-relative px-2 mx-lg-1" href="{{ route('wishlist.index') }}" title="Wishlist">
-                        <i class="bi bi-heart fs-5 text-dark"></i>
+                        <i class="bi bi-heart fs-5 text-danger"></i>
                         @php $wishlistCount = auth()->user()->wishlists()->count(); @endphp
                         <span id="wishlist-count" 
                             class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
@@ -59,7 +60,7 @@ FUNGSI: Navigation bar modern dengan Ikon Katalog
                 {{-- Cart --}}
                 <li class="nav-item">
                     <a class="nav-link position-relative px-2 mx-lg-1" href="{{ route('cart.index') }}" title="Keranjang">
-                        <i class="bi bi-cart3 fs-5 text-dark"></i>
+                        <i class="bi bi-cart3 fs-5 text-light"></i>
                         @php $cartCount = auth()->user()->cart?->items()->count() ?? 0; @endphp
                         @if($cartCount > 0)
                         <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-primary"
@@ -95,10 +96,10 @@ FUNGSI: Navigation bar modern dengan Ikon Katalog
                 @else
                 {{-- Guest Links --}}
                 <li class="nav-item">
-                    <a class="nav-link text-dark fw-medium px-3" href="{{ route('login') }}">Masuk</a>
+                    <a class="nav-link text-light fw-medium px-3" href="{{ route('login') }}">Masuk</a>
                 </li>
                 <li class="nav-item">
-                    <a class="btn btn-primary rounded-pill px-4 btn-sm fw-bold shadow-sm" href="{{ route('register') }}">Daftar</a>
+                    <a class="btn btn-secondary rounded-pill px-4 btn-sm fw-bold shadow-sm" href="{{ route('register') }}">Daftar</a>
                 </li>
                 @endauth
             </ul>

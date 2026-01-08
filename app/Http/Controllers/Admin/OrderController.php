@@ -45,11 +45,11 @@ class OrderController extends Controller
     {
         // Validasi status yang dikirim form
         $request->validate([
-            'status' => 'required|in:processing,completed,cancelled'
+            'status' => 'required|in:processing,shipped,delivered,cancelled'
         ]);
 
         $oldStatus = $order->status;
-        $newStatus = $request->status;
+        $newStatus = $request->status === 'completed' ? 'delivered' : $request->status;
 
         // ============================================================
         // LOGIKA RESTOCK (PENTING!)

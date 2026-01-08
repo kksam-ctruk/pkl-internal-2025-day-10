@@ -48,6 +48,14 @@
         <div class="card shadow-sm border-0 bg-light">
             <div class="card-body">
                 <h6 class="fw-bold mb-3">Update Status Order</h6>
+                
+                @if(session('success'))
+                    <div class="alert alert-success small py-2">{{ session('success') }}</div>
+                @endif
+                @if(session('error'))
+                    <div class="alert alert-danger small py-2">{{ session('error') }}</div>
+                @endif
+
                 <form action="{{ route('admin.orders.update-status', $order) }}" method="POST">
                     @csrf
                     @method('PATCH')
@@ -56,9 +64,9 @@
                         <label class="form-label small text-muted">Status Saat Ini: <strong>{{ ucfirst($order->status) }}</strong></label>
                         <select name="status" class="form-select">
                             <option value="pending" {{ $order->status == 'pending' ? 'selected' : '' }}>Pending</option>
-                            <option value="processing" {{ $order->status == 'processing' ? 'selected' : '' }}>Processing (Sedang Dikemas)</option>
-                            <option value="completed" {{ $order->status == 'completed' ? 'selected' : '' }}>Completed (Selesai/Dikirim)</option>
-                            <option value="cancelled" {{ $order->status == 'cancelled' ? 'selected' : '' }}>Cancelled (Batalkan & Restock)</option>
+                            <option value="processing" {{ $order->status == 'processing' ? 'selected' : '' }}>Processing</option>
+                            <option value="completed" {{ $order->status == 'completed' ? 'selected' : '' }}>Completed (Selesai)</option>
+                            <option value="cancelled" {{ $order->status == 'cancelled' ? 'selected' : '' }}>Cancelled</option>
                         </select>
                     </div>
 
@@ -69,7 +77,7 @@
 
                 @if($order->status == 'cancelled')
                     <div class="alert alert-danger mt-3 mb-0 small">
-                        <i class="bi bi-info-circle"></i> Pesanan ini telah dibatalkan. Stok produk telah dikembalikan otomatis.
+                        <i class="bi bi-info-circle"></i> Pesanan ini telah dibatalkan.
                     </div>
                 @endif
             </div>
